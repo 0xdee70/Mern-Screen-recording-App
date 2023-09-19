@@ -1,10 +1,11 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
-export default function Register({ username, email, password }) {
+export default function Register() {
   const [formData, SetFormData] = useState({
-    username,
-    email,
-    password,
+    username: "",
+    email: "",
+    password: "",
   });
 
   const [errorMessage, seterrorMessage] = useState("");
@@ -61,6 +62,9 @@ export default function Register({ username, email, password }) {
           <br></br>
           <button type="submit"> Register </button>
         </form>
+        <p>
+          Already User? <Link to="/login">click here!</Link>
+        </p>
       </div>
     </div>
   );
