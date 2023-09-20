@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+
 export default function Register() {
   const [formData, SetFormData] = useState({
     username: "",
@@ -10,6 +11,8 @@ export default function Register() {
 
   const [errorMessage, seterrorMessage] = useState("");
 
+  const navigate = useNavigate();
+
   const handleChange = (event) => {
     SetFormData({ ...formData, [event.target.name]: event.target.value });
   };
@@ -17,13 +20,20 @@ export default function Register() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!formData.email || !formData.password || !formData.username) {
+      return seterrorMessage("Please Provide all details");
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:5000/register",
         formData
       );
+      navigate("/login");
     } catch (error) {
-      seterrorMessage(error);
+      if (error) {
+        seterrorMessage("Email Already in use ..");
+      }
     }
   };
 

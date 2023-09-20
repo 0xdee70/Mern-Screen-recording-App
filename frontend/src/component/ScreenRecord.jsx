@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RecordRTC from "recordrtc";
+import axios from "axios";
 
 export default function ScreenRecord() {
   const [stream, setStream] = useState(null);
@@ -8,6 +10,13 @@ export default function ScreenRecord() {
   const webCamRef = useRef(null);
   const screenRef = useRef(null);
   const recorderRef = useRef(null);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    const remove = localStorage.removeItem("Token");
+    console.log("removed ...", remove);
+    navigate("/login");
+  };
 
   const handleRecording = async () => {
     const screenStream = await navigator.mediaDevices.getDisplayMedia({
@@ -64,7 +73,33 @@ export default function ScreenRecord() {
     });
   };
 
-  const handleSave = () => {};
+  const saveRecordedData = async (recordingBlob, fileName) => {
+    try {
+      if (recordingBlob) {
+        const formData = new FormData();
+        formData.append("video", recordingBlob, fileName);
+
+        await axios.post("http://localhost:5000/recordings", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        alert("Recording saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving recorded data:", error);
+    }
+  };
+
+  const handleSaveToDB = async () => {
+    try {
+      await saveRecordedData(recordingBlob[0], "webcamVideo.webm");
+      await saveRecordedData(recordingBlob[1], "screenVideo.webm");
+    } catch (error) {
+      console.error("Error saving recorded data to the database:", error);
+    }
+  };
 
   return (
     <div>
@@ -72,7 +107,10 @@ export default function ScreenRecord() {
         <button onClick={handleStop}> STOP </button>
         <button onClick={handleRecording}> Start </button>
 
-        <button onClick={handleSave}> Save </button>
+        <button onClick={handleSaveToDB}> Save </button>
+
+        <br />
+        <button onClick={handleLogout}>Logout</button>
         {recordingBlob.length > 0 && (
           <div>
             <video controls>

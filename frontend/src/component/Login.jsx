@@ -1,12 +1,14 @@
 import axios from "axios";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [formData, setformData] = useState({
     email: "",
     password: "",
   });
+
+  const [errorMessage, seterrorMessage] = useState("");
 
   const naviagte = useNavigate();
   const handleChange = (e) => {
@@ -16,22 +18,33 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.email || !formData.password) {
+      return seterrorMessage("Please Provide Both!");
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:5000/login",
         formData
       );
-      if (response.status === 200) {
+
+      if (response.status === 200 && response.data.token) {
+        localStorage.setItem("Token", response.data.token);
+
         naviagte("/screen");
       } else {
-        console.log("login failed ");
+        seterrorMessage("Invalid Credentials");
       }
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (
     <>
       <div>
+        <h2> Login Form </h2>
+        {errorMessage && <p> {errorMessage}</p>}
         <form onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email"> Email </label>
@@ -53,6 +66,10 @@ export default function Login() {
             <button type="submit"> Login </button>
           </div>
         </form>
+
+        <p>
+          Not an User ? <Link to="/register">click here </Link>
+        </p>
       </div>
     </>
   );
