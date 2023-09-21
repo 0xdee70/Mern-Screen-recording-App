@@ -8,7 +8,6 @@ const mongoose = require("mongoose");
 const recordRoute = require("./routes/RecordingRoute")
 
 const app = express();
-
 app.use(cors());
 app.use(bodyparser.json());
 
@@ -20,13 +19,6 @@ mongoose
 
 app.use("/", UserRoute);
 app.use("/", recordRoute)
-
-
-
-
-
-
-
 
 app.listen(5000, () => {
   console.log("server listening on port 5000");
