@@ -1,11 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RecordRTC from "recordrtc";
 import axios from "axios";
+import jwt_decode from "jwt-decode";
 
 export default function ScreenRecord() {
-  const [stream, setStream] = useState(null);
-  const [recordingBlob, setRecordingBlob] = useState([]);
+  const [recordingBlob, setRecordingBlob] = useState({
+    webcamVideo: null,
+    screenVideo: null,
+  });
 
   const webCamRef = useRef(null);
   const screenRef = useRef(null);
@@ -44,8 +47,6 @@ export default function ScreenRecord() {
     screenRecorder.startRecording();
     camRecorder.startRecording();
 
-    setStream(true);
-
     webCamRef.current = screenStream;
     screenRef.current = cameraStream;
 
@@ -61,23 +62,31 @@ export default function ScreenRecord() {
         const screenBlob = screen.getBlob();
 
         console.log(".......", [webcamBlob, screenBlob]);
-        setRecordingBlob([webcamBlob, screenBlob]);
+        setRecordingBlob({ webcamVideo: webcamBlob, screenVideo: screenBlob });
 
         webCamRef.current.getTracks().forEach((track) => track.stop());
         screenRef.current.getTracks().forEach((track) => track.stop());
-
-        setStream(false);
-
-        console.log(recordingBlob, ".......");
       });
     });
   };
 
-  const saveRecordedData = async (recordingBlob, fileName) => {
+  const saveRecordedDataToDB = async (usermail) => {
     try {
-      if (recordingBlob) {
+      if (recordingBlob.webcamVideo && recordingBlob.screenVideo) {
         const formData = new FormData();
-        formData.append("video", recordingBlob, fileName);
+
+        formData.append(
+          "webcamVideo",
+          recordingBlob.webcamVideo,
+          "webcamVideo.webm"
+        );
+        formData.append(
+          "screenVideo",
+          recordingBlob.screenVideo,
+          "screenVideo.webm"
+        );
+
+        formData.append("usermail", usermail);
 
         await axios.post("http://localhost:5000/recordings", formData, {
           headers: {
@@ -88,16 +97,21 @@ export default function ScreenRecord() {
         alert("Recording saved successfully!");
       }
     } catch (error) {
-      console.error("Error saving recorded data:", error);
+      console.error("Error saving recorded data to the database:", error);
     }
   };
 
   const handleSaveToDB = async () => {
     try {
-      await saveRecordedData(recordingBlob[0], "webcamVideo.webm");
-      await saveRecordedData(recordingBlob[1], "screenVideo.webm");
-    } catch (error) {
-      console.error("Error saving recorded data to the database:", error);
+      if (recordingBlob.webcamVideo && recordingBlob.screenVideo) {
+        const token = localStorage.getItem("Token");
+        const dcode = jwt_decode(token);
+        const usermail = dcode.email;
+
+        await saveRecordedDataToDB(usermail);
+      }
+    } catch (e) {
+      console.log("Erro saving recorded data:", e);
     }
   };
 
@@ -111,17 +125,17 @@ export default function ScreenRecord() {
 
         <br />
         <button onClick={handleLogout}>Logout</button>
-        {recordingBlob.length > 0 && (
+        {recordingBlob.webcamVideo && recordingBlob.screenVideo && (
           <div>
             <video controls>
               <source
-                src={URL.createObjectURL(recordingBlob[0])}
+                src={URL.createObjectURL(recordingBlob.webcamVideo)}
                 type="video/webm"
               />
             </video>
             <br />
             <video controls>
-              <source src={URL.createObjectURL(recordingBlob[1])} />
+              <source src={URL.createObjectURL(recordingBlob.screenVideo)} />
             </video>
           </div>
         )}

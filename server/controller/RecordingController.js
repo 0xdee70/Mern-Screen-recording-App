@@ -1,28 +1,29 @@
-const multer = require("multer");
-
-const storage = multer.memoryStorage();
-
-
-const Recording = require("../models/Recording");
+const Recording = require("../models/Recording"); 
+const User = require('../models/User')
 
 const recordCon = async (req, res) => {
   try {
-    const video = req.file;
-    if (!video) {
-      res.status(400).json({ error: "No video uploaded" });
-    }
+    const webcamVideo = req.files["webcamVideo"][0];
+    const screenVideo = req.files["screenVideo"][0];
 
-    const recording = new Recording({
-      video: video.buffer,
-      filename: video.originalname,
+    const userEmail = req.body.usermail;
+
+    const mail = await User.findOne({email:userEmail}) ;
+
+    const newRecording = new Recording({
+
+      userId:mail._id,
+      webcamVideo: webcamVideo.buffer.toString("base64"), 
+      screenVideo: screenVideo.buffer.toString("base64"), 
     });
-    await recording.save();
 
-    res.status(201).json({ message: "Recording saved successfully" });
+    await newRecording.save();
+
+    res.status(201).json({ message: "Recording created successfully" });
   } catch (error) {
-    console.error("Error saving recording:", error);
-    res.status(500).json({ error: "Saving recording failed" });
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-module.exports = {recordCon};
+module.exports = { recordCon };

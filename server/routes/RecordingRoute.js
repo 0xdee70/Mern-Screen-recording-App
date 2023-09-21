@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const RecordingController = require('../controller/RecordingController')
-const multer = require('multer')
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const multer = require('multer');
+const RecordingController = require('../controller/RecordingController');
+const upload = multer(); 
 
 
-router.post('/recordings', upload.single('video'), RecordingController.recordCon
-);
+router.post('/recordings', upload.fields([
+  { name: 'webcamVideo', maxCount: 1 },
+  { name: 'screenVideo', maxCount: 1 }
+]), RecordingController.recordCon);
 
 module.exports = router;
