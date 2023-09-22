@@ -16,58 +16,61 @@ export default function ScreenRecord() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    const remove = localStorage.removeItem("Token");
-    console.log("removed ...", remove);
+    localStorage.removeItem("Token");
     navigate("/login");
   };
 
-  const handleRecording = async () => {
-    const screenStream = await navigator.mediaDevices.getDisplayMedia({
-      video: {
-        width: 1920,
-        height: 1080,
-        frameRate: 30,
-      },
-      audio: true,
-    });
+  const handleStart = async () => {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          width: 1920,
+          height: 1080,
+          frameRate: 30,
+        },
+        audio: true,
+      });
 
-    const cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
+      const cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
 
-    const screenRecorder = new RecordRTC(screenStream, {
-      type: "video",
-    });
+      const screenRecorder = new RecordRTC(screenStream, {
+        type: "video",
+      });
 
-    const camRecorder = new RecordRTC(cameraStream, {
-      type: "video",
-    });
+      const camRecorder = new RecordRTC(cameraStream, {
+        type: "video",
+      });
 
-    screenRecorder.startRecording();
-    camRecorder.startRecording();
+      screenRecorder.startRecording();
+      camRecorder.startRecording();
 
-    webCamRef.current = screenStream;
-    screenRef.current = cameraStream;
+      webCamRef.current = screenStream;
+      screenRef.current = cameraStream;
 
-    recorderRef.current = { webcam: camRecorder, screen: screenRecorder };
+      recorderRef.current = { webcam: camRecorder, screen: screenRecorder };
+    } catch (error) {
+      console.error("Error starting recording: ", error);
+    }
   };
 
   const handleStop = async () => {
     const { webcam, screen } = recorderRef.current;
 
-    webcam.stopRecording(() => {
-      screen.stopRecording(async () => {
-        const webcamBlob = webcam.getBlob();
-        const screenBlob = screen.getBlob();
+    await Promise.all([
+      new Promise((resolve) => webcam.stopRecording(resolve)),
+      new Promise((resolve) => screen.stopRecording(resolve)),
+    ]);
 
-        console.log(".......", [webcamBlob, screenBlob]);
-        setRecordingBlob({ webcamVideo: webcamBlob, screenVideo: screenBlob });
+    const webcamBlob = webcam.getBlob();
+    const screenBlob = screen.getBlob();
 
-        webCamRef.current.getTracks().forEach((track) => track.stop());
-        screenRef.current.getTracks().forEach((track) => track.stop());
-      });
-    });
+    setRecordingBlob({ webcamVideo: webcamBlob, screenVideo: screenBlob });
+
+    webCamRef.current.getTracks().forEach((track) => track.stop());
+    screenRef.current.getTracks().forEach((track) => track.stop());
   };
 
   const saveRecordedDataToDB = async (usermail) => {
@@ -105,24 +108,22 @@ export default function ScreenRecord() {
     try {
       if (recordingBlob.webcamVideo && recordingBlob.screenVideo) {
         const token = localStorage.getItem("Token");
-        const dcode = jwt_decode(token);
-        const usermail = dcode.email;
+        const decodedToken = jwt_decode(token);
+        const usermail = decodedToken.email;
 
         await saveRecordedDataToDB(usermail);
       }
     } catch (e) {
-      console.log("Erro saving recorded data:", e);
+      console.log("Error saving recorded data:", e);
     }
   };
 
   return (
     <div>
       <div>
-        <button onClick={handleStop}> STOP </button>
-        <button onClick={handleRecording}> Start </button>
-
-        <button onClick={handleSaveToDB}> Save </button>
-
+        <button onClick={handleStop}>Stop</button>
+        <button onClick={handleStart}>Start</button>
+        <button onClick={handleSaveToDB}>Save</button>
         <br />
         <button onClick={handleLogout}>Logout</button>
         {recordingBlob.webcamVideo && recordingBlob.screenVideo && (
