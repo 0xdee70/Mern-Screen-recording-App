@@ -10,6 +10,7 @@ export default function Register() {
   });
 
   const [errorMessage, seterrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -21,29 +22,50 @@ export default function Register() {
     event.preventDefault();
 
     if (!formData.email || !formData.password || !formData.username) {
-      return seterrorMessage("Please Provide all details");
+      return seterrorMessage("Please provide all details");
     }
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/register",
+        `${import.meta.env.VITE_API_URL}/register`,
         formData
       );
-      navigate("/login");
+      
+      if (response.status === 200) {
+        setSuccessMessage("Registration successful! Redirecting to login...");
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      }
     } catch (error) {
-      if (error) {
-        seterrorMessage("Email Already in use ..");
+      console.error(error);
+      
+      // Improved error handling with specific messages from backend
+      if (error.response) {
+        const status = error.response.status;
+        const message = error.response.data;
+        
+        if (status === 422) {
+          seterrorMessage("Email already in use. Please try a different email.");
+        } else if (typeof message === 'string') {
+          seterrorMessage(message);
+        } else {
+          seterrorMessage("Registration failed. Please try again.");
+        }
+      } else {
+        seterrorMessage("Network error. Please check your connection.");
       }
     }
   };
 
   return (
     <div>
-      <h2> Registration Form </h2>
-      {errorMessage && <p> {errorMessage}</p>}
+      <h2>Registration Form</h2>
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
       <div>
         <form onSubmit={handleSubmit}>
-          <label htmlFor="username"> Name : </label>
+          <label htmlFor="username">Name:</label>
           <input
             type="text"
             name="username"
@@ -51,8 +73,8 @@ export default function Register() {
             value={formData.username}
             onChange={handleChange}
           />
-          <br></br>
-          <label htmlFor="email"> Email : </label>
+          <br />
+          <label htmlFor="email">Email:</label>
           <input
             type="email"
             name="email"
@@ -60,8 +82,8 @@ export default function Register() {
             value={formData.email}
             onChange={handleChange}
           />
-          <br></br>
-          <label htmlFor="password"> Password </label>
+          <br />
+          <label htmlFor="password">Password:</label>
           <input
             type="password"
             name="password"
@@ -69,11 +91,11 @@ export default function Register() {
             value={formData.password}
             onChange={handleChange}
           />
-          <br></br>
-          <button type="submit"> Register </button>
+          <br />
+          <button type="submit">Register</button>
         </form>
         <p>
-          Already User? <Link to="/login">click here!</Link>
+          Already a user? <Link to="/login">Click here!</Link>
         </p>
       </div>
     </div>

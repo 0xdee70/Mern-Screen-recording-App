@@ -10,6 +10,10 @@ export default function ScreenRecord() {
     screenVideo: null,
   });
 
+  const [isRecording, setIsRecording] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
   const webCamRef = useRef(null);
   const screenRef = useRef(null);
   const recorderRef = useRef(null);
@@ -22,6 +26,8 @@ export default function ScreenRecord() {
 
   const handleStart = async () => {
     try {
+      setMessage("Starting recording...");
+      
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
           width: 1920,
@@ -47,30 +53,54 @@ export default function ScreenRecord() {
       screenRecorder.startRecording();
       camRecorder.startRecording();
 
-      webCamRef.current = screenStream;
-      screenRef.current = cameraStream;
+      // Fixed: Correct assignment of streams
+      screenRef.current = screenStream;
+      webCamRef.current = cameraStream;
 
       recorderRef.current = { webcam: camRecorder, screen: screenRecorder };
+      setIsRecording(true);
+      setMessage("Recording started successfully!");
     } catch (error) {
       console.error("Error starting recording: ", error);
+      setMessage("Failed to start recording. Please check permissions.");
     }
   };
 
   const handleStop = async () => {
-    const { webcam, screen } = recorderRef.current;
+    if (!recorderRef.current) {
+      setMessage("No active recording to stop.");
+      return;
+    }
 
-    await Promise.all([
-      new Promise((resolve) => webcam.stopRecording(resolve)),
-      new Promise((resolve) => screen.stopRecording(resolve)),
-    ]);
+    try {
+      setMessage("Stopping recording...");
+      
+      const { webcam, screen } = recorderRef.current;
 
-    const webcamBlob = webcam.getBlob();
-    const screenBlob = screen.getBlob();
+      await Promise.all([
+        new Promise((resolve) => webcam.stopRecording(resolve)),
+        new Promise((resolve) => screen.stopRecording(resolve)),
+      ]);
 
-    setRecordingBlob({ webcamVideo: webcamBlob, screenVideo: screenBlob });
+      const webcamBlob = webcam.getBlob();
+      const screenBlob = screen.getBlob();
 
-    webCamRef.current.getTracks().forEach((track) => track.stop());
-    screenRef.current.getTracks().forEach((track) => track.stop());
+      setRecordingBlob({ webcamVideo: webcamBlob, screenVideo: screenBlob });
+
+      // Stop all tracks properly
+      if (webCamRef.current) {
+        webCamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (screenRef.current) {
+        screenRef.current.getTracks().forEach((track) => track.stop());
+      }
+
+      setIsRecording(false);
+      setMessage("Recording stopped successfully!");
+    } catch (error) {
+      console.error("Error stopping recording: ", error);
+      setMessage("Failed to stop recording properly.");
+    }
   };
 
   const saveRecordedDataToDB = async (usermail) => {
@@ -91,53 +121,115 @@ export default function ScreenRecord() {
 
         formData.append("usermail", usermail);
 
-        await axios.post("http://localhost:5000/recordings", formData, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/recordings`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
 
-        alert("Recording saved successfully!");
+        // Improved user feedback - using state instead of alert
+        setMessage("Recording saved successfully!");
+        console.log("Recording saved to database successfully");
       }
     } catch (error) {
       console.error("Error saving recorded data to the database:", error);
+      setMessage("Failed to save recording. Please try again.");
     }
   };
 
   const handleSaveToDB = async () => {
-    try {
-      if (recordingBlob.webcamVideo && recordingBlob.screenVideo) {
-        const token = localStorage.getItem("Token");
-        const decodedToken = jwt_decode(token);
-        const usermail = decodedToken.email;
+    if (!recordingBlob.webcamVideo || !recordingBlob.screenVideo) {
+      setMessage("No recording available to save.");
+      return;
+    }
 
-        await saveRecordedDataToDB(usermail);
+    try {
+      setIsSaving(true);
+      setMessage("Saving recording...");
+      
+      const token = localStorage.getItem("Token");
+      if (!token) {
+        setMessage("Authentication token not found. Please login again.");
+        navigate("/login");
+        return;
       }
-    } catch (e) {
-      console.log("Error saving recorded data:", e);
+
+      const decodedToken = jwt_decode(token);
+      const usermail = decodedToken.email;
+
+      await saveRecordedDataToDB(usermail);
+    } catch (error) {
+      console.error("Error saving recorded data:", error);
+      setMessage("Failed to save recording. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
     <div>
       <div>
-        <button onClick={handleStop}>Stop</button>
-        <button onClick={handleStart}>Start</button>
-        <button onClick={handleSaveToDB}>Save</button>
-        <br />
-        <button onClick={handleLogout}>Logout</button>
+        <h2>Screen Recording</h2>
+        {message && (
+          <p style={{ 
+            color: message.includes('Failed') || message.includes('Error') ? 'red' : 'green',
+            fontWeight: 'bold'
+          }}>
+            {message}
+          </p>
+        )}
+        
+        <div style={{ marginBottom: '20px' }}>
+          <button 
+            onClick={handleStart} 
+            disabled={isRecording}
+            style={{ marginRight: '10px' }}
+          >
+            {isRecording ? 'Recording...' : 'Start Recording'}
+          </button>
+          
+          <button 
+            onClick={handleStop} 
+            disabled={!isRecording}
+            style={{ marginRight: '10px' }}
+          >
+            Stop Recording
+          </button>
+          
+          <button 
+            onClick={handleSaveToDB} 
+            disabled={!recordingBlob.webcamVideo || !recordingBlob.screenVideo || isSaving}
+            style={{ marginRight: '10px' }}
+          >
+            {isSaving ? 'Saving...' : 'Save Recording'}
+          </button>
+        </div>
+        
+        <button onClick={handleLogout} style={{ backgroundColor: '#dc3545', color: 'white' }}>
+          Logout
+        </button>
+        
         {recordingBlob.webcamVideo && recordingBlob.screenVideo && (
-          <div>
-            <video controls>
-              <source
-                src={URL.createObjectURL(recordingBlob.webcamVideo)}
-                type="video/webm"
-              />
-            </video>
-            <br />
-            <video controls>
-              <source src={URL.createObjectURL(recordingBlob.screenVideo)} />
-            </video>
+          <div style={{ marginTop: '20px' }}>
+            <h3>Recorded Videos:</h3>
+            <div>
+              <h4>Webcam Recording:</h4>
+              <video controls style={{ maxWidth: '400px', marginBottom: '10px' }}>
+                <source
+                  src={URL.createObjectURL(recordingBlob.webcamVideo)}
+                  type="video/webm"
+                />
+              </video>
+            </div>
+            <div>
+              <h4>Screen Recording:</h4>
+              <video controls style={{ maxWidth: '400px' }}>
+                <source 
+                  src={URL.createObjectURL(recordingBlob.screenVideo)}
+                  type="video/webm"
+                />
+              </video>
+            </div>
           </div>
         )}
       </div>

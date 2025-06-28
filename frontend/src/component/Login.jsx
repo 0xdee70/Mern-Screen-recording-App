@@ -24,37 +24,60 @@ export default function Login() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/login",
+        `${import.meta.env.VITE_API_URL}/login`,
         formData
       );
 
       if (response.status === 200 && response.data.token) {
         localStorage.setItem("Token", response.data.token);
-
         navigate("/screen");
       } else {
         setErrorMessage("Invalid credentials");
       }
     } catch (error) {
       console.error(error);
-      setErrorMessage("Login failed. Please try again.");
+      
+      // Improved error handling with specific messages from backend
+      if (error.response) {
+        const status = error.response.status;
+        const message = error.response.data;
+        
+        if (status === 401) {
+          setErrorMessage("User not found. Please check your email.");
+        } else if (status === 402) {
+          setErrorMessage("Incorrect password. Please try again.");
+        } else if (typeof message === 'string') {
+          setErrorMessage(message);
+        } else {
+          setErrorMessage("Login failed. Please try again.");
+        }
+      } else {
+        setErrorMessage("Network error. Please check your connection.");
+      }
     }
   };
 
   return (
     <div>
       <h2>Login Form</h2>
-      {errorMessage && <p>{errorMessage}</p>}
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="email">Email</label>
-          <input type="email" name="email" id="email" onChange={handleChange} />
+          <input 
+            type="email" 
+            name="email" 
+            id="email" 
+            value={formData.email}
+            onChange={handleChange} 
+          />
           <br />
           <label htmlFor="password">Password</label>
           <input
             type="password"
             name="password"
             id="password"
+            value={formData.password}
             onChange={handleChange}
           />
           <br />
