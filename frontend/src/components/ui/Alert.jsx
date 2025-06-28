@@ -37,9 +37,9 @@ const Alert = ({ type = 'info', children, className = '' }) => {
   const Icon = config.icon;
   
   return (
-    <div className={`flex items-start p-4 rounded-lg border ${config.bg} ${config.border} ${className}`}>
+    <div className={`flex items-start p-4 rounded-xl border-2 ${config.bg} ${config.border} shadow-sm ${className}`}>
       <Icon className={`h-5 w-5 ${config.iconColor} mr-3 mt-0.5 flex-shrink-0`} />
-      <div className={`text-sm ${config.text}`}>
+      <div className={`text-sm font-medium ${config.text}`}>
         {children}
       </div>
     </div>

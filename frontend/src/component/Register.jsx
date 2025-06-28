@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Video, ArrowLeft, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Video, ArrowLeft, CheckCircle, Sparkles, User, Mail, Lock } from "lucide-react";
 import axios from "axios";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
@@ -97,33 +97,48 @@ export default function Register() {
 
   const strength = passwordStrength();
 
+  const features = [
+    "HD screen recording up to 4K",
+    "Webcam overlay with customization",
+    "Secure cloud storage",
+    "Real-time collaboration tools",
+    "Advanced editing features"
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center text-secondary-600 hover:text-secondary-800 mb-6 transition-colors">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+        <div className="text-center mb-10">
+          <Link to="/" className="inline-flex items-center text-secondary-600 hover:text-secondary-800 mb-8 transition-colors group">
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Back to Home
           </Link>
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Video className="h-8 w-8 text-primary-600" />
-            <span className="text-2xl font-bold text-secondary-800">RecordPro</span>
+          
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="relative">
+              <Video className="h-10 w-10 text-primary-600" />
+              <Sparkles className="h-5 w-5 text-warning-500 absolute -top-1 -right-1" />
+            </div>
+            <span className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+              RecordPro
+            </span>
           </div>
-          <h1 className="text-3xl font-bold text-secondary-900 mb-2">Create Account</h1>
-          <p className="text-secondary-600">Start your screen recording journey today</p>
+          
+          <h1 className="text-4xl font-bold text-secondary-900 mb-3">Create Your Account</h1>
+          <p className="text-lg text-secondary-600">Start your professional recording journey today</p>
         </div>
 
-        <Card>
-          <Card.Content className="p-6">
+        <Card className="shadow-2xl border-0">
+          <Card.Content className="p-8">
             {errorMessage && (
-              <Alert type="error" className="mb-6">
+              <Alert type="error" className="mb-8">
                 {errorMessage}
               </Alert>
             )}
 
             {successMessage && (
-              <Alert type="success" className="mb-6">
+              <Alert type="success" className="mb-8">
                 <div className="flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2" />
                   {successMessage}
@@ -131,29 +146,38 @@ export default function Register() {
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <Input
-                label="Full Name"
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                required
-              />
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="relative">
+                <User className="absolute left-3 top-12 h-5 w-5 text-secondary-400" />
+                <Input
+                  label="Full Name"
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Enter your full name"
+                  className="pl-12"
+                  required
+                />
+              </div>
 
-              <Input
-                label="Email Address"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                required
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-12 h-5 w-5 text-secondary-400" />
+                <Input
+                  label="Email Address"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  className="pl-12"
+                  required
+                />
+              </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="relative">
+                  <Lock className="absolute left-3 top-12 h-5 w-5 text-secondary-400" />
                   <Input
                     label="Password"
                     type={showPassword ? "text" : "password"}
@@ -161,11 +185,12 @@ export default function Register() {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Create a strong password"
+                    className="pl-12 pr-12"
                     required
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-9 text-secondary-400 hover:text-secondary-600 transition-colors"
+                    className="absolute right-3 top-12 text-secondary-400 hover:text-secondary-600 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -173,33 +198,38 @@ export default function Register() {
                 </div>
                 
                 {formData.password && (
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-secondary-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          strength.strength === 1 ? 'bg-error-500 w-1/3' :
-                          strength.strength === 2 ? 'bg-warning-500 w-2/3' :
-                          strength.strength === 3 ? 'bg-success-500 w-full' : 'w-0'
-                        }`}
-                      />
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-1 bg-secondary-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            strength.strength === 1 ? 'bg-error-500 w-1/3' :
+                            strength.strength === 2 ? 'bg-warning-500 w-2/3' :
+                            strength.strength === 3 ? 'bg-success-500 w-full' : 'w-0'
+                          }`}
+                        />
+                      </div>
+                      <span className={`text-sm font-semibold ${strength.color}`}>
+                        {strength.text}
+                      </span>
                     </div>
-                    <span className={`text-xs font-medium ${strength.color}`}>
-                      {strength.text}
-                    </span>
                   </div>
                 )}
               </div>
 
-              <div className="text-xs text-secondary-600 space-y-1">
-                <p>Password requirements:</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li className={formData.password.length >= 6 ? 'text-success-600' : ''}>
+              <div className="bg-secondary-50 rounded-xl p-4">
+                <p className="text-sm font-semibold text-secondary-700 mb-3">Password requirements:</p>
+                <ul className="space-y-2">
+                  <li className={`flex items-center text-sm ${formData.password.length >= 6 ? 'text-success-600' : 'text-secondary-500'}`}>
+                    <CheckCircle className={`h-4 w-4 mr-2 ${formData.password.length >= 6 ? 'text-success-500' : 'text-secondary-300'}`} />
                     At least 6 characters
                   </li>
-                  <li className={/[A-Z]/.test(formData.password) ? 'text-success-600' : ''}>
+                  <li className={`flex items-center text-sm ${/[A-Z]/.test(formData.password) ? 'text-success-600' : 'text-secondary-500'}`}>
+                    <CheckCircle className={`h-4 w-4 mr-2 ${/[A-Z]/.test(formData.password) ? 'text-success-500' : 'text-secondary-300'}`} />
                     One uppercase letter (recommended)
                   </li>
-                  <li className={/[0-9]/.test(formData.password) ? 'text-success-600' : ''}>
+                  <li className={`flex items-center text-sm ${/[0-9]/.test(formData.password) ? 'text-success-600' : 'text-secondary-500'}`}>
+                    <CheckCircle className={`h-4 w-4 mr-2 ${/[0-9]/.test(formData.password) ? 'text-success-500' : 'text-secondary-300'}`} />
                     One number (recommended)
                   </li>
                 </ul>
@@ -212,16 +242,16 @@ export default function Register() {
                 loading={isLoading}
                 disabled={isLoading}
               >
-                {isLoading ? "Creating Account..." : "Create Account"}
+                {isLoading ? "Creating Account..." : "Create Your Account"}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-8 text-center">
               <p className="text-secondary-600">
                 Already have an account?{" "}
                 <Link 
                   to="/login" 
-                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                  className="text-primary-600 hover:text-primary-700 font-semibold transition-colors"
                 >
                   Sign in here
                 </Link>
@@ -231,22 +261,16 @@ export default function Register() {
         </Card>
 
         {/* Features Preview */}
-        <Card className="mt-6 bg-secondary-50 border-secondary-200">
-          <Card.Content className="p-4">
-            <h3 className="font-semibold text-secondary-800 mb-2">What you'll get:</h3>
-            <ul className="text-sm text-secondary-600 space-y-1">
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-success-500 mr-2" />
-                HD screen recording
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-success-500 mr-2" />
-                Webcam overlay
-              </li>
-              <li className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-success-500 mr-2" />
-                Secure cloud storage
-              </li>
+        <Card className="mt-8 bg-gradient-to-r from-secondary-50 to-primary-50 border-secondary-200 shadow-lg">
+          <Card.Content className="p-6">
+            <h3 className="font-bold text-secondary-800 mb-4 text-center">What you'll get with RecordPro:</h3>
+            <ul className="space-y-3">
+              {features.map((feature, index) => (
+                <li key={index} className="flex items-center text-sm text-secondary-700">
+                  <CheckCircle className="h-4 w-4 text-success-500 mr-3 flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
             </ul>
           </Card.Content>
         </Card>

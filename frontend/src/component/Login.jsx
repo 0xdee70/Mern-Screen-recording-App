@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Video, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Video, ArrowLeft, Sparkles, Lock, Mail } from "lucide-react";
 import axios from "axios";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
@@ -69,42 +69,54 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center text-secondary-600 hover:text-secondary-800 mb-6 transition-colors">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+        <div className="text-center mb-10">
+          <Link to="/" className="inline-flex items-center text-secondary-600 hover:text-secondary-800 mb-8 transition-colors group">
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Back to Home
           </Link>
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Video className="h-8 w-8 text-primary-600" />
-            <span className="text-2xl font-bold text-secondary-800">RecordPro</span>
+          
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="relative">
+              <Video className="h-10 w-10 text-primary-600" />
+              <Sparkles className="h-5 w-5 text-warning-500 absolute -top-1 -right-1" />
+            </div>
+            <span className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+              RecordPro
+            </span>
           </div>
-          <h1 className="text-3xl font-bold text-secondary-900 mb-2">Welcome Back</h1>
-          <p className="text-secondary-600">Sign in to your account to continue recording</p>
+          
+          <h1 className="text-4xl font-bold text-secondary-900 mb-3">Welcome Back</h1>
+          <p className="text-lg text-secondary-600">Sign in to continue your recording journey</p>
         </div>
 
-        <Card>
-          <Card.Content className="p-6">
+        <Card className="shadow-2xl border-0">
+          <Card.Content className="p-8">
             {errorMessage && (
-              <Alert type="error" className="mb-6">
+              <Alert type="error" className="mb-8">
                 {errorMessage}
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <Input
-                label="Email Address"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                required
-              />
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="relative">
+                <Mail className="absolute left-3 top-12 h-5 w-5 text-secondary-400" />
+                <Input
+                  label="Email Address"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  className="pl-12"
+                  required
+                />
+              </div>
 
               <div className="relative">
+                <Lock className="absolute left-3 top-12 h-5 w-5 text-secondary-400" />
                 <Input
                   label="Password"
                   type={showPassword ? "text" : "password"}
@@ -112,11 +124,12 @@ export default function Login() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
+                  className="pl-12 pr-12"
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-9 text-secondary-400 hover:text-secondary-600 transition-colors"
+                  className="absolute right-3 top-12 text-secondary-400 hover:text-secondary-600 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -130,16 +143,16 @@ export default function Login() {
                 loading={isLoading}
                 disabled={isLoading}
               >
-                {isLoading ? "Signing In..." : "Sign In"}
+                {isLoading ? "Signing In..." : "Sign In to RecordPro"}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-8 text-center">
               <p className="text-secondary-600">
                 Don't have an account?{" "}
                 <Link 
                   to="/register" 
-                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                  className="text-primary-600 hover:text-primary-700 font-semibold transition-colors"
                 >
                   Create one here
                 </Link>
@@ -149,11 +162,15 @@ export default function Login() {
         </Card>
 
         {/* Demo Account Info */}
-        <Card className="mt-6 bg-primary-50 border-primary-200">
-          <Card.Content className="p-4">
-            <p className="text-sm text-primary-800 text-center">
-              <strong>Demo Account:</strong> test@example.com / password123
-            </p>
+        <Card className="mt-8 bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200 shadow-lg">
+          <Card.Content className="p-6">
+            <div className="text-center">
+              <h3 className="font-semibold text-primary-800 mb-2">Try Demo Account</h3>
+              <p className="text-sm text-primary-700">
+                <strong>Email:</strong> test@example.com<br />
+                <strong>Password:</strong> password123
+              </p>
+            </div>
           </Card.Content>
         </Card>
       </div>
