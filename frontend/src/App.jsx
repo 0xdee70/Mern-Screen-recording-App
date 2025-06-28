@@ -5,7 +5,7 @@ import Login from "./component/Login";
 import ScreenRecord from "./component/ScreenRecord";
 import Home from "./pages/Home";
 import Registration from "./component/Register";
-import "./App.css";
+import "./styles/globals.css";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
