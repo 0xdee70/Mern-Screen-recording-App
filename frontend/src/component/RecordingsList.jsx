@@ -11,8 +11,7 @@ import {
   Search,
   Filter
 } from 'lucide-react';
-import axios from 'axios';
-import jwt_decode from 'jwt-decode';
+import api, { authUtils } from '../utils/auth';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
@@ -29,18 +28,12 @@ export default function RecordingsList() {
 
   const fetchRecordings = async () => {
     try {
-      const token = localStorage.getItem('Token');
-      if (!token) {
+      if (!authUtils.isAuthenticated()) {
         setError('Authentication required');
         return;
       }
 
-      const decodedToken = jwt_decode(token);
-      const userEmail = decodedToken.email;
-
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/recordings`, {
-        params: { email: userEmail }
-      });
+      const response = await api.get('/recordings');
 
       setRecordings(response.data);
     } catch (error) {
@@ -200,8 +193,8 @@ export default function RecordingsList() {
                     size="sm"
                     onClick={() => {
                       const videoSrc = recording.editedVideoPath 
-                        ? `${import.meta.env.VITE_API_URL}/recordings/${recording._id}/video/edited`
-                        : `${import.meta.env.VITE_API_URL}/recordings/${recording._id}/video/screen`;
+                        ? `/recordings/${recording._id}/video/edited`
+                        : `/recordings/${recording._id}/video/screen`;
                       window.open(videoSrc, '_blank');
                     }}
                   >

@@ -12,6 +12,7 @@ fs.ensureDirSync(outputDir);
 const editVideo = async (req, res) => {
   try {
     const { recordingId, operations } = req.body;
+    const user = req.user; // From auth middleware
     
     // Validate input
     if (!recordingId || !operations) {
@@ -19,7 +20,11 @@ const editVideo = async (req, res) => {
     }
 
     // Find recording
-    const recording = await Recording.findById(recordingId);
+    const recording = await Recording.findOne({ 
+      _id: recordingId, 
+      userId: user._id 
+    });
+    
     if (!recording) {
       return res.status(404).json({ message: "Recording not found" });
     }
@@ -108,16 +113,14 @@ const processVideo = (recording, operations, outputPath) => {
 const mergeVideos = async (req, res) => {
   try {
     const { recordingIds, title } = req.body;
-    const userEmail = req.body.userEmail;
+    const user = req.user; // From auth middleware
 
     if (!recordingIds || recordingIds.length < 2) {
       return res.status(400).json({ message: "At least 2 recordings are required for merging" });
     }
 
-    // Find user
-    const user = await User.findOne({ email: userEmail });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({ message: "Authentication required" });
     }
 
     // Find all recordings
@@ -207,8 +210,13 @@ const mergeVideoFiles = (recordings, outputPath) => {
 const getEditingStatus = async (req, res) => {
   try {
     const { recordingId } = req.params;
+    const user = req.user; // From auth middleware
     
-    const recording = await Recording.findById(recordingId);
+    const recording = await Recording.findOne({ 
+      _id: recordingId, 
+      userId: user._id 
+    });
+    
     if (!recording) {
       return res.status(404).json({ message: "Recording not found" });
     }

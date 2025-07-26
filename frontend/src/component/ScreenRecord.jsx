@@ -1,8 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RecordRTC from "recordrtc";
-import axios from "axios";
-import jwt_decode from "jwt-decode";
+import api, { authUtils } from "../utils/auth";
 import { 
   Video, 
   Square, 
@@ -38,8 +37,8 @@ export default function ScreenRecord() {
   const recorderRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("Token");
+  const handleLogout = async () => {
+    await authUtils.logout();
     navigate("/login");
   };
 
@@ -126,7 +125,7 @@ export default function ScreenRecord() {
     }
   };
 
-  const saveRecordedDataToDB = async (usermail) => {
+  const saveRecordedDataToDB = async () => {
     try {
       if (recordingBlob.webcamVideo && recordingBlob.screenVideo) {
         const formData = new FormData();
@@ -142,10 +141,9 @@ export default function ScreenRecord() {
           "screenVideo.webm"
         );
 
-        formData.append("usermail", usermail);
         formData.append("title", recordingTitle || "Untitled Recording");
 
-        const response = await axios.post(`${import.meta.env.VITE_API_URL}/recordings`, formData, {
+        const response = await api.post('/recordings', formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -176,17 +174,13 @@ export default function ScreenRecord() {
       setIsSaving(true);
       showMessage("Saving recording...", "info");
       
-      const token = localStorage.getItem("Token");
-      if (!token) {
+      if (!authUtils.isAuthenticated()) {
         showMessage("Authentication token not found. Please login again.", "error");
         navigate("/login");
         return;
       }
 
-      const decodedToken = jwt_decode(token);
-      const usermail = decodedToken.email;
-
-      const recordingId = await saveRecordedDataToDB(usermail);
+      const recordingId = await saveRecordedDataToDB();
       
       if (recordingId) {
         // Option to navigate to editor

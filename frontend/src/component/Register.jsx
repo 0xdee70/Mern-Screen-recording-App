@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Video, ArrowLeft, CheckCircle, Sparkles, User, Mail, Lock } from "lucide-react";
-import axios from "axios";
+import { authUtils } from "../utils/auth";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Card from "../components/ui/Card";
@@ -54,34 +54,23 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/register`,
-        formData
+      const result = await authUtils.register(
+        formData.username,
+        formData.email,
+        formData.password
       );
       
-      if (response.status === 200) {
+      if (result.success) {
         setSuccessMessage("Account created successfully! Redirecting to login...");
         setTimeout(() => {
           navigate("/login");
         }, 2000);
+      } else {
+        setErrorMessage(result.error);
       }
     } catch (error) {
       console.error(error);
-      
-      if (error.response) {
-        const status = error.response.status;
-        const message = error.response.data;
-        
-        if (status === 422) {
-          setErrorMessage("Email already in use. Please try a different email.");
-        } else if (typeof message === 'string') {
-          setErrorMessage(message);
-        } else {
-          setErrorMessage("Registration failed. Please try again.");
-        }
-      } else {
-        setErrorMessage("Network error. Please check your connection.");
-      }
+      setErrorMessage("Network error. Please check your connection.");
     } finally {
       setIsLoading(false);
     }

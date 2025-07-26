@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Video, ArrowLeft, Sparkles, Lock, Mail } from "lucide-react";
-import axios from "axios";
+import { authUtils } from "../utils/auth";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Card from "../components/ui/Card";
@@ -33,36 +33,16 @@ export default function Login() {
     }
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/login`,
-        formData
-      );
-
-      if (response.status === 200 && response.data.token) {
-        localStorage.setItem("Token", response.data.token);
+      const result = await authUtils.login(formData.email, formData.password);
+      
+      if (result.success) {
         navigate("/screen");
       } else {
-        setErrorMessage("Invalid credentials");
+        setErrorMessage(result.error);
       }
     } catch (error) {
       console.error(error);
-      
-      if (error.response) {
-        const status = error.response.status;
-        const message = error.response.data;
-        
-        if (status === 401) {
-          setErrorMessage("User not found. Please check your email.");
-        } else if (status === 402) {
-          setErrorMessage("Incorrect password. Please try again.");
-        } else if (typeof message === 'string') {
-          setErrorMessage(message);
-        } else {
-          setErrorMessage("Login failed. Please try again.");
-        }
-      } else {
-        setErrorMessage("Network error. Please check your connection.");
-      }
+      setErrorMessage("Network error. Please check your connection.");
     } finally {
       setIsLoading(false);
     }

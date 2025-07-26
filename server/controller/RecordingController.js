@@ -12,12 +12,10 @@ const recordCon = async (req, res) => {
   try {
     const webcamVideo = req.files["webcamVideo"][0];
     const screenVideo = req.files["screenVideo"][0];
-    const userEmail = req.body.usermail;
+    const user = req.user; // From auth middleware
 
-    // Find user
-    const user = await User.findOne({ email: userEmail });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({ message: "Authentication required" });
     }
 
     // Generate unique filenames
@@ -54,11 +52,10 @@ const recordCon = async (req, res) => {
 
 const getUserRecordings = async (req, res) => {
   try {
-    const userEmail = req.query.email;
-    
-    const user = await User.findOne({ email: userEmail });
+    const user = req.user; // From auth middleware
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({ message: "Authentication required" });
     }
 
     const recordings = await Recording.find({ userId: user._id })
@@ -75,8 +72,13 @@ const getUserRecordings = async (req, res) => {
 const getRecording = async (req, res) => {
   try {
     const { recordingId } = req.params;
+    const user = req.user; // From auth middleware
     
-    const recording = await Recording.findById(recordingId);
+    const recording = await Recording.findOne({ 
+      _id: recordingId, 
+      userId: user._id 
+    });
+    
     if (!recording) {
       return res.status(404).json({ message: "Recording not found" });
     }
@@ -91,8 +93,13 @@ const getRecording = async (req, res) => {
 const serveVideo = async (req, res) => {
   try {
     const { recordingId, type } = req.params;
+    const user = req.user; // From auth middleware
     
-    const recording = await Recording.findById(recordingId);
+    const recording = await Recording.findOne({ 
+      _id: recordingId, 
+      userId: user._id 
+    });
+    
     if (!recording) {
       return res.status(404).json({ message: "Recording not found" });
     }

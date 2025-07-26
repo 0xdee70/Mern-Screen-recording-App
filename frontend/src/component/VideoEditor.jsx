@@ -13,8 +13,7 @@ import {
   Eye,
   Settings
 } from 'lucide-react';
-import axios from 'axios';
-import jwt_decode from 'jwt-decode';
+import api, { authUtils } from '../utils/auth';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
@@ -62,7 +61,7 @@ export default function VideoEditor() {
 
   const fetchRecording = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/recordings/${recordingId}`);
+      const response = await api.get(`/recordings/${recordingId}`);
       setRecording(response.data);
     } catch (error) {
       console.error('Error fetching recording:', error);
@@ -132,13 +131,12 @@ export default function VideoEditor() {
       setError('');
       setSuccess('');
 
-      const token = localStorage.getItem('Token');
-      if (!token) {
+      if (!authUtils.isAuthenticated()) {
         setError('Authentication required');
         return;
       }
 
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/edit-video`, {
+      const response = await api.post('/edit-video', {
         recordingId,
         operations: editParams
       });
@@ -192,7 +190,7 @@ export default function VideoEditor() {
     );
   }
 
-  const videoSrc = `${import.meta.env.VITE_API_URL}/recordings/${recordingId}/video/${videoType}`;
+  const videoSrc = `/recordings/${recordingId}/video/${videoType}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-6">
@@ -477,7 +475,7 @@ export default function VideoEditor() {
                       variant="outline" 
                       className="w-full"
                       onClick={() => {
-                        const editedVideoSrc = `${import.meta.env.VITE_API_URL}/recordings/${recordingId}/video/edited`;
+                        const editedVideoSrc = `/recordings/${recordingId}/video/edited`;
                         window.open(editedVideoSrc, '_blank');
                       }}
                     >
